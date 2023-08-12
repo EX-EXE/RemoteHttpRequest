@@ -1,4 +1,4 @@
 # RemoteHttpRequest
-HTTP request from HttpClient, Grpc and HttpClientHandler are used to send and receive requests via an external server.
+Use Grpc and HttpClientHandler to send and receive HTTP requests from C# HttpClient via an external server.
 
 ## 
