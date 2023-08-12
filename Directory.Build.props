@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <Authors>EX-EXE</Authors>
+    <Owners>EX-EXE</Owners>
+    <PackageProjectUrl>https://github.com/EX-EXE/RemoteHttpRequest</PackageProjectUrl>
+    <RepositoryUrl>$(PackageProjectUrl)</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Description>Use Grpc and HttpClientHandler to send and receive HTTP requests from C# HttpClient via an external server.</Description>
+  </PropertyGroup>
+</Project>
