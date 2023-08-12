@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option csharp_namespace = "RemoteHttpRequest.Proto";
+
+package RemoteHttpRequest;
+
+service HttpService {
+  rpc Send (stream  HttpRequest) returns (stream HttpResponse);
+}
+
+message HttpMeta
+{
+	string message = 1;
+	string content_header = 2;
+}
+
+
+message HttpRequest {
+	oneof data{
+		HttpMeta meta = 1;
+		bytes content = 3;
+		bool eof = 4;
+	}
+}
+
+message HttpResponse {
+	oneof data{
+		HttpMeta meta = 1;
+		bytes content = 2;
+		bool eof = 3;
+	}
+}

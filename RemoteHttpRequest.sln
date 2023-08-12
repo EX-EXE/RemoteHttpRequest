@@ -1,0 +1,70 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34003.232
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0E572A54-F339-4C1D-B101-D81ABB9897B0}"
+	ProjectSection(SolutionItems) = preProject
+		src\Directory.Build.props = src\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteHttpRequest.Client", "src\RemoteHttpRequest.Client\RemoteHttpRequest.Client.csproj", "{0EDC1847-A42C-488C-8849-9FDA188643E4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteHttpRequest.Server", "src\RemoteHttpRequest.Server\RemoteHttpRequest.Server.csproj", "{33C690FB-3458-4DB3-8A72-DB715C853B15}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteHttpRequest.Proto", "src\RemoteHttpRequest.Proto\RemoteHttpRequest.Proto.csproj", "{3AC96559-DB23-4659-BA3C-34334D5CECF9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{9C383D23-8179-4890-9C1D-2F44BA3964E1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteHttpRequest.SampleClient", "sample\RemoteHttpRequest.SampleClient\RemoteHttpRequest.SampleClient.csproj", "{0EA6F067-B29F-4DE0-98D2-1A40160E4CEE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteHttpRequest.SampleServer", "sample\RemoteHttpRequest.SampleServer\RemoteHttpRequest.SampleServer.csproj", "{5D084004-8F55-4F31-891F-B165645D56AF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RemoteHttpRequest.Shared", "src\RemoteHttpRequest.Shared\RemoteHttpRequest.Shared.csproj", "{3366CDD6-BC60-44CA-A6ED-94A1183A3F64}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0EDC1847-A42C-488C-8849-9FDA188643E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EDC1847-A42C-488C-8849-9FDA188643E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EDC1847-A42C-488C-8849-9FDA188643E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EDC1847-A42C-488C-8849-9FDA188643E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33C690FB-3458-4DB3-8A72-DB715C853B15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33C690FB-3458-4DB3-8A72-DB715C853B15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33C690FB-3458-4DB3-8A72-DB715C853B15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33C690FB-3458-4DB3-8A72-DB715C853B15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AC96559-DB23-4659-BA3C-34334D5CECF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AC96559-DB23-4659-BA3C-34334D5CECF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AC96559-DB23-4659-BA3C-34334D5CECF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AC96559-DB23-4659-BA3C-34334D5CECF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EA6F067-B29F-4DE0-98D2-1A40160E4CEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EA6F067-B29F-4DE0-98D2-1A40160E4CEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EA6F067-B29F-4DE0-98D2-1A40160E4CEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EA6F067-B29F-4DE0-98D2-1A40160E4CEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D084004-8F55-4F31-891F-B165645D56AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D084004-8F55-4F31-891F-B165645D56AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D084004-8F55-4F31-891F-B165645D56AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D084004-8F55-4F31-891F-B165645D56AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3366CDD6-BC60-44CA-A6ED-94A1183A3F64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3366CDD6-BC60-44CA-A6ED-94A1183A3F64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3366CDD6-BC60-44CA-A6ED-94A1183A3F64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3366CDD6-BC60-44CA-A6ED-94A1183A3F64}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0EDC1847-A42C-488C-8849-9FDA188643E4} = {0E572A54-F339-4C1D-B101-D81ABB9897B0}
+		{33C690FB-3458-4DB3-8A72-DB715C853B15} = {0E572A54-F339-4C1D-B101-D81ABB9897B0}
+		{3AC96559-DB23-4659-BA3C-34334D5CECF9} = {0E572A54-F339-4C1D-B101-D81ABB9897B0}
+		{0EA6F067-B29F-4DE0-98D2-1A40160E4CEE} = {9C383D23-8179-4890-9C1D-2F44BA3964E1}
+		{5D084004-8F55-4F31-891F-B165645D56AF} = {9C383D23-8179-4890-9C1D-2F44BA3964E1}
+		{3366CDD6-BC60-44CA-A6ED-94A1183A3F64} = {0E572A54-F339-4C1D-B101-D81ABB9897B0}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {081E6337-5A06-454E-95AE-7D1B9ACFF734}
+	EndGlobalSection
+EndGlobal
