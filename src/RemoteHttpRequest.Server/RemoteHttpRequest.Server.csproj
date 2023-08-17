@@ -8,10 +8,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\RemoteHttpRequest.Proto\*.proto" GrpcServices="Server" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\RemoteHttpRequest.Shared\RemoteHttpRequest.Shared.csproj" />
 	</ItemGroup>
 

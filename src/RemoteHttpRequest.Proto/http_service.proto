@@ -8,10 +8,20 @@ service HttpService {
   rpc Send (stream  HttpRequest) returns (stream HttpResponse);
 }
 
+
+message HttpHeader
+{
+	string key = 1;
+	repeated string values = 2;
+}
+
 message HttpMeta
 {
 	string message = 1;
-	string content_header = 2;
+	bool content_exists = 2;
+
+	repeated HttpHeader request_headers = 3;
+	repeated HttpHeader content_headers = 4;
 }
 
 

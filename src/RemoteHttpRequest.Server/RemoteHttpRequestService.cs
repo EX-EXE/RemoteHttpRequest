@@ -1,14 +1,10 @@
 ﻿using Google.Protobuf;
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using RemoteHttpRequest.Proto;
 using RemoteHttpRequest.Shared;
 using System.Net;
-using System.Text.Json;
-using System.Threading;
 using System.Threading.Channels;
-using Grpc.Core;
-using System.Net.Http.Headers;
-using System.Reflection.PortableExecutable;
 
 namespace RemoteHttpRequest.Server;
 
@@ -37,34 +33,29 @@ public partial class RemoteHttpRequestService : Proto.HttpService.HttpServiceBas
         {
             throw new InvalidOperationException($"Not Receive Request Message.");
         }
-        var firstReceive = requestStream.Current;
-        if (firstReceive.DataCase != HttpRequest.DataOneofCase.Meta)
+        var receiveData = requestStream.Current;
+        if (receiveData.DataCase != HttpRequest.DataOneofCase.Meta)
         {
-            throw new InvalidOperationException($"Incorrect Receive Order. : {firstReceive.DataCase}");
+            throw new InvalidOperationException($"Incorrect Receive Order. : {receiveData.DataCase}");
         }
+        var receiveMetaData = receiveData.Meta;
 
         // Message
-        var messageData = ReceiveRequestMessage(firstReceive);
+        var requestMessage = ReceiveRequestMessage(receiveMetaData, context);
 
         // Content
-        var receiveTask = default(Task);
         var buffer = Channel.CreateBounded<ReadOnlyMemory<byte>>(ChannelCapacity);
         using var content = new ChannelReaderHttpContent(buffer.Reader);
-        if (!string.IsNullOrEmpty(firstReceive.Meta.ContentHeader))
+        var receiveTask = default(Task);
+        if (receiveMetaData.ContentExists)
         {
-            var headers = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<KeyValuePair<string, IEnumerable<string>>>>(firstReceive.Meta.ContentHeader, RemoteHttpRequestOptions.JsonSerializer);
-            if (headers == null)
+            requestMessage.Content = content;
+            // Receive Content Header
+            foreach (var header in receiveData.Meta.ContentHeaders)
             {
-                throw new InvalidOperationException($"Deserialize Error : {nameof(HttpContentHeaders)}\n{firstReceive.Meta}");
+                content.Headers.Add(header.Key, header.Values);
             }
-
-            // Buffer
-            foreach (var header in headers)
-            {
-                content.Headers.Add(header.Key, header.Value);
-            }
-
-            // Send
+            // Receive Content Data
             receiveTask = Task.Run(async () =>
             {
                 await foreach (var message in requestStream.ReadAllAsync(cancellationToken).ConfigureAwait(false))
@@ -81,33 +72,34 @@ public partial class RemoteHttpRequestService : Proto.HttpService.HttpServiceBas
                 }
             }, cancellationToken);
 
-            messageData.Content = content;
         }
-
         // Http Send
-        using var responseData = await SendHttpRequestAsync(messageData, cancellationToken: cancellationToken).ConfigureAwait(false);
+        using var responseData = await SendHttpRequestAsync(requestMessage, context, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (receiveTask != null)
         {
-            await receiveTask;
+            await receiveTask.ConfigureAwait(false);
         }
-
         // Response 
-        await WriteResponseStream(responseData,responseStream,cancellationToken: cancellationToken).ConfigureAwait(false);
+        await WriteResponseStream(responseData, responseStream, context, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
 
-    protected virtual HttpRequestMessage ReceiveRequestMessage(HttpRequest request)
+    protected virtual HttpRequestMessage ReceiveRequestMessage(HttpMeta metaData, ServerCallContext context)
     {
         // Message
-        var messageData = System.Text.Json.JsonSerializer.Deserialize<HttpRequestMessage>(request.Meta.Message, RemoteHttpRequestOptions.JsonSerializer);
-        if (messageData == null)
+        var requestMessage = System.Text.Json.JsonSerializer.Deserialize<HttpRequestMessage>(metaData.Message, RemoteHttpRequestOptions.JsonSerializer);
+        if (requestMessage == null)
         {
-            throw new InvalidOperationException($"Deserialize Error : {nameof(HttpRequestMessage)}\n{request.Meta}");
+            throw new InvalidOperationException($"Deserialize Error : {nameof(HttpRequestMessage)}\n{metaData.Message}");
         }
-        return messageData;
+        foreach (var header in metaData.RequestHeaders)
+        {
+            requestMessage.Headers.Add(header.Key, header.Values);
+        }
+        return requestMessage;
     }
 
-    protected virtual Task<HttpResponseMessage> SendHttpRequestAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken)
+    protected virtual Task<HttpResponseMessage> SendHttpRequestAsync(HttpRequestMessage httpRequestMessage, ServerCallContext context, CancellationToken cancellationToken)
     {
         return httpClient.SendAsync(httpRequestMessage, cancellationToken: cancellationToken);
     }
@@ -115,21 +107,22 @@ public partial class RemoteHttpRequestService : Proto.HttpService.HttpServiceBas
     protected virtual async ValueTask WriteResponseStream(
         HttpResponseMessage httpResponseMessage,
         IServerStreamWriter<HttpResponse> responseStream,
+        ServerCallContext context,
         CancellationToken cancellationToken)
     {
-        // Message
+        // Meta
         var responseMetaData = new HttpMeta()
         {
             Message = System.Text.Json.JsonSerializer.Serialize(httpResponseMessage, RemoteHttpRequestOptions.JsonSerializer),
-            ContentHeader = string.Empty
+            ContentExists = false
         };
+        HttpHeaderUtility.AddHttpHeaders(responseMetaData.RequestHeaders, httpResponseMessage.Headers);
 
-        // Content Header
+        // Meta Content
         if (httpResponseMessage.Content != null)
         {
-            responseMetaData.ContentHeader = System.Text.Json.JsonSerializer.Serialize(
-                httpResponseMessage.Content.Headers.ToArray(), 
-                RemoteHttpRequestOptions.JsonSerializer);
+            responseMetaData.ContentExists = true;
+            HttpHeaderUtility.AddHttpHeaders(responseMetaData.ContentHeaders, httpResponseMessage.Content.Headers);
         }
         await responseStream.WriteAsync(new HttpResponse() { Meta = responseMetaData }, cancellationToken).ConfigureAwait(false);
 
@@ -147,10 +140,7 @@ public partial class RemoteHttpRequestService : Proto.HttpService.HttpServiceBas
         }
 
         // Eof
-        await responseStream.WriteAsync(new Proto.HttpResponse()
-        {
-            Eof = true,
-        }, cancellationToken).ConfigureAwait(false);
+        await responseStream.WriteAsync(new Proto.HttpResponse() { Eof = true, }, cancellationToken).ConfigureAwait(false);
     }
 
     class ChannelReaderHttpContent : HttpContent

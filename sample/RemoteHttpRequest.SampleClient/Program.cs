@@ -30,10 +30,12 @@ namespace RemoteHttpRequest.SampleClient
             };
             var jsonString = System.Text.Json.JsonSerializer.Serialize(parameters);
             var content = new StringContent(jsonString, Encoding.UTF8, @"application/json");
+            content.Headers.Add("Test", "Test2");
 
             var channel = GrpcChannel.ForAddress("https://localhost:7007");
             var client = new HttpServiceClient(channel);
             var httpClient = new HttpClient(new RemoteHttpClientHandler(client));
+            
             //var httpClient = new HttpClient();
             var handler = new HttpRequestMessage()
             {
@@ -41,6 +43,7 @@ namespace RemoteHttpRequest.SampleClient
                 Content = content,
                 Method = HttpMethod.Post,
             };
+            handler.Headers.Add($"Authorization", "Bearer x");
 
             var response = await httpClient.SendAsync(handler);
             var readString = await response.Content.ReadAsStringAsync();

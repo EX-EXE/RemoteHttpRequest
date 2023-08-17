@@ -1,6 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-  </PropertyGroup>
+	<PropertyGroup>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Google.Protobuf" Version="3.24.0" />
+		<PackageReference Include="Grpc.Net.Client" Version="2.55.0" />
+		<PackageReference Include="Grpc.Tools" Version="2.57.0">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<Protobuf Include="..\RemoteHttpRequest.Proto\*.proto" GrpcServices="Both" />
+	</ItemGroup>
 
 </Project>

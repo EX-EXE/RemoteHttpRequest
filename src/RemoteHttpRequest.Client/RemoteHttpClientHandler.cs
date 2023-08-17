@@ -1,12 +1,7 @@
 ﻿using Google.Protobuf;
 using Grpc.Core;
 using RemoteHttpRequest.Shared;
-using System;
 using System.Buffers;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata;
-using System.Text.Json;
-using System.Threading.Channels;
 using static RemoteHttpRequest.Proto.HttpService;
 
 namespace RemoteHttpRequest.Client;
@@ -32,16 +27,25 @@ public class RemoteHttpClientHandler : HttpClientHandler
         {
             contentHeaderJson = System.Text.Json.JsonSerializer.Serialize(request.Content.Headers.ToArray(), RemoteHttpRequestOptions.JsonSerializer);
         }
-        await streamingCall.RequestStream.WriteAsync(new Proto.HttpRequest()
+
+        // MetaData
+        var metaData = new Proto.HttpMeta()
         {
-            Meta = new Proto.HttpMeta()
-            {
-                Message = messageJson,
-                ContentHeader = contentHeaderJson,
-            },
-        }, cancellationToken).ConfigureAwait(false);
+            Message = messageJson,
+            ContentExists = false,
+        };
+        HttpHeaderUtility.AddHttpHeaders(metaData.RequestHeaders, request.Headers);
         if (request.Content != null)
         {
+            metaData.ContentExists = true;
+            HttpHeaderUtility.AddHttpHeaders(metaData.ContentHeaders, request.Content.Headers);
+        }
+
+        // Send Meta
+        await streamingCall.RequestStream.WriteAsync(new Proto.HttpRequest() { Meta = metaData }, cancellationToken).ConfigureAwait(false);
+        if (request.Content != null)
+        {
+            // Send Content
             using var writeStream = new WriteFuncStream(async (buffer, cancellationToken) =>
             {
                 await streamingCall.RequestStream.WriteAsync(new Proto.HttpRequest()
@@ -51,14 +55,12 @@ public class RemoteHttpClientHandler : HttpClientHandler
             }, MaxWriteBytesSize);
             await request.Content.CopyToAsync(writeStream, cancellationToken).ConfigureAwait(false);
         }
-        await streamingCall.RequestStream.WriteAsync(new Proto.HttpRequest()
-        {
-            Eof = true,
-        }, cancellationToken).ConfigureAwait(false);
+
+        // Send Eof
+        await streamingCall.RequestStream.WriteAsync(new Proto.HttpRequest() { Eof = true, }, cancellationToken).ConfigureAwait(false);
 
         // Response
-        var meta = (HttpResponseMessage?)default;
-        var contentHeader = string.Empty;
+        var meta = (Proto.HttpMeta?)default;
         using var memoryStream = new MemoryStream();
         var eof = false;
         await foreach (var message in streamingCall.ResponseStream.ReadAllAsync(cancellationToken).ConfigureAwait(false))
@@ -66,8 +68,7 @@ public class RemoteHttpClientHandler : HttpClientHandler
             switch (message.DataCase)
             {
                 case Proto.HttpResponse.DataOneofCase.Meta:
-                    meta = System.Text.Json.JsonSerializer.Deserialize<HttpResponseMessage>(message.Meta.Message);
-                    contentHeader = message.Meta.ContentHeader;
+                    meta = message.Meta;
                     break;
                 case Proto.HttpResponse.DataOneofCase.Content:
                     await memoryStream.WriteAsync(message.Content.ToByteArray());
@@ -85,20 +86,26 @@ public class RemoteHttpClientHandler : HttpClientHandler
         {
             throw new InvalidOperationException($"Not Receive. : {nameof(eof)}");
         }
-        meta.Content = new ByteArrayContent(memoryStream.ToArray());
-        if (string.IsNullOrEmpty(contentHeader))
+
+        // Deserialize
+        var response = System.Text.Json.JsonSerializer.Deserialize<HttpResponseMessage>(meta.Message);
+        if (response == null)
         {
-            var headers = System.Text.Json.JsonSerializer.Deserialize<IEnumerable<KeyValuePair<string, IEnumerable<string>>>>(contentHeader, RemoteHttpRequestOptions.JsonSerializer);
-            if (headers == null)
+            throw new InvalidOperationException($"Deserialize Error. : {meta.Message}");
+        }
+        foreach (var header in meta.RequestHeaders)
+        {
+            response.Headers.Add(header.Key, header.Values);
+        }
+        if (meta.ContentExists)
+        {
+            response.Content = new ByteArrayContent(memoryStream.ToArray());
+            foreach (var header in meta.ContentHeaders)
             {
-                throw new InvalidOperationException($"Deserialize Error : {nameof(HttpContentHeaders)}\n{contentHeader}");
-            }
-            foreach (var header in headers)
-            {
-                meta.Content.Headers.Add(header.Key, header.Value);
+                response.Content.Headers.Add(header.Key, header.Values);
             }
         }
-        return meta;
+        return response;
     }
 
 }
