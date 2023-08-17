@@ -95,14 +95,14 @@ public class RemoteHttpClientHandler : HttpClientHandler
         }
         foreach (var header in meta.RequestHeaders)
         {
-            response.Headers.Add(header.Key, header.Values);
+            response.Headers.TryAddWithoutValidation(header.Key, header.Values);
         }
         if (meta.ContentExists)
         {
             response.Content = new ByteArrayContent(memoryStream.ToArray());
             foreach (var header in meta.ContentHeaders)
             {
-                response.Content.Headers.Add(header.Key, header.Values);
+                response.Content.Headers.TryAddWithoutValidation(header.Key, header.Values);
             }
         }
         return response;

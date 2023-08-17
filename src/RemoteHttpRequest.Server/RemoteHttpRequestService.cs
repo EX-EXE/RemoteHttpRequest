@@ -53,7 +53,7 @@ public partial class RemoteHttpRequestService : Proto.HttpService.HttpServiceBas
             // Receive Content Header
             foreach (var header in receiveData.Meta.ContentHeaders)
             {
-                content.Headers.Add(header.Key, header.Values);
+                content.Headers.TryAddWithoutValidation(header.Key, header.Values);
             }
             // Receive Content Data
             receiveTask = Task.Run(async () =>
@@ -94,7 +94,7 @@ public partial class RemoteHttpRequestService : Proto.HttpService.HttpServiceBas
         }
         foreach (var header in metaData.RequestHeaders)
         {
-            requestMessage.Headers.Add(header.Key, header.Values);
+            requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Values);
         }
         return requestMessage;
     }
